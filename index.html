@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Katiba Book 3D — Constitution of Kenya</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,27 +12,34 @@
       rel="stylesheet"
     />
     <style>
-      /* Design Tokens Expansion Pipeline */
       :root[data-theme="light"] {
         --bg-canvas: #f9f7f3;
-        --bg-surface: #f2ece4;
+        --bg-surface: rgba(242, 236, 228, 0.85);
+        --bg-surface-solid: #f2ece4;
         --text-primary: #24201f;
         --text-secondary: #584f4b;
         --text-muted: #796a5d;
         --border-default: #c5bcb4;
         --interactive-primary: #8d644a;
         --accent-signal: #8d281e;
+        --shadow-elevation: rgba(0, 0, 0, 0.08);
       }
 
       :root[data-theme="dark"] {
         --bg-canvas: #131110;
-        --bg-surface: #1e1b18;
+        --bg-surface: rgba(30, 27, 24, 0.85);
+        --bg-surface-solid: #1e1b18;
         --text-primary: #f2ece4;
         --text-secondary: #c5bcb4;
         --text-muted: #796a5d;
         --border-default: #38322e;
         --interactive-primary: #c5917c;
         --accent-signal: #8d281e;
+        --shadow-elevation: rgba(0, 0, 0, 0.4);
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
@@ -55,35 +62,40 @@
         height: 100%;
       }
 
-      /* Top Minimal Management Bar */
-      .controls-bar {
-        position: absolute;
-        top: max(16px, env(safe-area-inset-top));
-        left: max(16px, env(safe-area-inset-left));
-        right: max(16px, env(safe-area-inset-right));
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 10;
-        pointer-events: none;
-      }
       .interactive-element {
         pointer-events: auto;
       }
 
+      /* Top Minimal Control Bar */
+      .controls-bar {
+        position: absolute;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
+        right: max(12px, env(safe-area-inset-right));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 20;
+        pointer-events: none;
+      }
+
       .brand-badge {
         font-family: "Fraunces", serif;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        padding: 6px 12px;
+        padding: 6px 14px;
         background: var(--bg-surface);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--border-default);
         border-radius: 999px;
         display: flex;
         align-items: center;
         gap: 8px;
+        color: var(--text-primary);
+        box-shadow: 0 4px 12px var(--shadow-elevation);
       }
       .brand-dot {
         width: 8px;
@@ -92,47 +104,179 @@
         border-radius: 50%;
       }
 
-      .theme-toggle-btn {
+      .actions-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-btn, .theme-toggle-btn {
         background: var(--bg-surface);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--border-default);
         color: var(--text-primary);
-        padding: 8px 16px;
-        border-radius: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
         cursor: pointer;
         font-weight: 600;
         font-size: 12px;
-        min-height: 44px;
+        min-height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
         transition: all 0.2s ease;
+        box-shadow: 0 4px 12px var(--shadow-elevation);
       }
-      .theme-toggle-btn:hover {
+      .icon-btn:hover, .theme-toggle-btn:hover {
         border-color: var(--interactive-primary);
-        background: var(--bg-canvas);
+        background: var(--bg-surface-solid);
       }
 
-      /* Floating Bottom Hint Overlay */
-      .hint-overlay {
+      /* Chapter Navigation HUD Dock (Bottom Center) */
+      .chapter-hud {
         position: absolute;
-        bottom: max(24px, env(safe-area-inset-bottom));
+        bottom: max(16px, env(safe-area-inset-bottom));
         left: 50%;
         transform: translateX(-50%);
-        font-family: "Inter", sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
         background: var(--bg-surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--border-default);
-        padding: 8px 18px;
+        padding: 6px 10px;
         border-radius: 999px;
+        z-index: 25;
+        box-shadow: 0 8px 24px var(--shadow-elevation);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      .chapter-hud.hidden {
+        opacity: 0;
         pointer-events: none;
-        transition: opacity 0.4s ease;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        z-index: 10;
-        white-space: nowrap;
+        transform: translate(-50%, 20px);
+      }
+
+      .hud-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 16px;
+        font-weight: 700;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+      }
+      .hud-btn:hover {
+        background: var(--border-default);
+      }
+
+      .chapter-select {
+        background: var(--bg-surface-solid);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: "Inter", sans-serif;
+        cursor: pointer;
+        outline: none;
+        max-width: 180px;
+        text-overflow: ellipsis;
+      }
+
+      .close-book-btn {
+        background: var(--accent-signal);
+        color: #ffffff;
+        border: none;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+      }
+      .close-book-btn:hover {
+        opacity: 0.9;
+      }
+
+      /* Modal Overlay for About / Settings */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(6px);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 1;
+        transition: opacity 0.25s ease;
+      }
+      .modal-backdrop.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .modal-card {
+        background: var(--bg-surface-solid);
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 440px;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+        font-size: 20px;
+      }
+      .close-icon-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .modal-body p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-top: 0;
+      }
+
+      /* Mobile Optimizations (< 768px) */
+      @media (max-width: 768px) {
+        .chapter-hud {
+          width: calc(100vw - 24px);
+          max-width: 380px;
+          justify-content: space-between;
+          padding: 6px 8px;
+        }
+        .chapter-select {
+          max-width: 130px;
+          font-size: 11px;
+        }
+        .brand-badge {
+          font-size: 11px;
+          padding: 4px 10px;
+        }
       }
     </style>
   </head>
@@ -143,13 +287,41 @@
         KATIBA 3D
       </div>
 
-      <button id="themeBtn" class="theme-toggle-btn interactive-element">
-        Switch to Light
-      </button>
+      <div class="actions-group">
+        <button id="aboutBtn" class="icon-btn interactive-element">
+          ⓘ About
+        </button>
+        <button id="themeBtn" class="theme-toggle-btn interactive-element">
+          Switch to Light
+        </button>
+      </div>
     </div>
 
-    <div id="hintOverlay" class="hint-overlay">
-      Click the book cover to open and inspect
+    <!-- Chapter Fast-Scrubber HUD -->
+    <div id="chapterHud" class="chapter-hud interactive-element hidden">
+      <button id="prevChapterBtn" class="hud-btn" title="Previous Chapter">‹</button>
+      <select id="chapterSelect" class="chapter-select">
+        <!-- Populated dynamically via main.ts -->
+      </select>
+      <button id="nextChapterBtn" class="hud-btn" title="Next Chapter">›</button>
+      <button id="closeBookBtn" class="close-book-btn">✕ Close</button>
+    </div>
+
+    <!-- About / Info Modal -->
+    <div id="aboutModal" class="modal-backdrop hidden interactive-element">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Katiba Book 3D</h3>
+          <button id="closeAboutBtn" class="close-icon-btn">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>An interactive 3D spatial reader for the <strong>Constitution of Kenya (2010)</strong>.</p>
+          <p>Features 18 chapters, real-time page canvas rendering, and top-down reading zoom state.</p>
+          <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 0;">
+            Source Data: National Council for Law Reporting (Kenya Law) & Katiba Institute.
+          </p>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
