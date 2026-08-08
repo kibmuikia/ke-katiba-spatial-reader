@@ -7,20 +7,18 @@ export interface PageRenderOptions {
   chapters?: ChapterNode[];
   selectedChapter?: ChapterNode | null;
   pageIndex?: number;
-  totalPages?: number;
 }
 
 /**
- * Creates an HTML5 CanvasTexture containing crisp vector-rendered typography
- * for left/right open book pages.
+ * Renders high-resolution vector canvas textures for book pages.
+ * Optimized page heights and margins to prevent UI overlap at bottom.
  */
 export function createPageTexture(options: PageRenderOptions): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
-  canvas.height = 1433; // ~1:1.4 aspect ratio matching physical page dimensions
+  canvas.height = 1433;
   const ctx = canvas.getContext("2d")!;
 
-  // 1. Theme Design Token Colors
   const isDark = options.theme === "dark";
   const bgColor = isDark ? "#1e1b18" : "#f7f4ed";
   const textColor = isDark ? "#f2ece4" : "#24201f";
@@ -28,16 +26,16 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
   const accentColor = isDark ? "#c5917c" : "#8d644a";
   const borderColor = isDark ? "#38322e" : "#e0d8cd";
 
-  // Fill Background Canvas
+  // Fill Page Canvas
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Decorative Inner Page Border / Margin Lines
+  // Outer Margin Border
   ctx.strokeStyle = borderColor;
   ctx.lineWidth = 2;
   ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-  // 2. Render Page Header
+  // Page Header
   ctx.fillStyle = accentColor;
   ctx.font = "bold 24px 'Fraunces', serif";
   ctx.textAlign = "left";
@@ -50,7 +48,6 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
   ctx.lineTo(canvas.width - 70, 110);
   ctx.stroke();
 
-  // 3. Render Page Content Logic
   if (options.type === "table-of-contents" && options.chapters) {
     // --- TABLE OF CONTENTS PAGE ---
     ctx.fillStyle = textColor;
@@ -58,13 +55,12 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
     ctx.fillText("CHAPTERS INDEX", 70, 170);
 
     let yOffset = 230;
-    const maxDisplayed = 12; // Prevent canvas overflow
+    const maxDisplayed = 12;
     const visibleChapters = options.chapters.slice(0, maxDisplayed);
 
     visibleChapters.forEach((ch) => {
       const isSelected = options.selectedChapter?.number === ch.number;
 
-      // Selection Highlight Box
       if (isSelected) {
         ctx.fillStyle = isDark ? "rgba(197, 145, 124, 0.15)" : "rgba(141, 100, 74, 0.12)";
         ctx.fillRect(65, yOffset - 28, canvas.width - 130, 48);
@@ -74,12 +70,10 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
       }
 
       ctx.font = "bold 24px 'Inter', sans-serif";
-      const chapterLabel = `Chapter ${ch.number}`;
-      ctx.fillText(chapterLabel, 80, yOffset);
+      ctx.fillText(`Chapter ${ch.number}`, 80, yOffset);
 
       ctx.fillStyle = subtextColor;
       ctx.font = "20px 'Inter', sans-serif";
-      // Truncate long chapter titles to fit width
       let titleText = ch.title;
       if (titleText.length > 34) {
         titleText = titleText.substring(0, 31) + "...";
@@ -92,7 +86,7 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
     if (options.chapters.length > maxDisplayed) {
       ctx.fillStyle = subtextColor;
       ctx.font = "italic 20px 'Inter', sans-serif";
-      ctx.fillText(`+ ${options.chapters.length - maxDisplayed} more chapters...`, 80, yOffset + 10);
+      ctx.fillText(`+ ${options.chapters.length - maxDisplayed} additional chapters...`, 80, yOffset + 10);
     }
 
   } else if (options.type === "chapter-detail" && options.selectedChapter) {
@@ -106,7 +100,7 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
     ctx.fillStyle = textColor;
     ctx.font = "bold 34px 'Fraunces', serif";
     
-    // Wrap Chapter Title across multiple lines if needed
+    // Wrap Chapter Title
     const words = ch.title.split(" ");
     let line = "";
     let titleY = 210;
@@ -123,22 +117,22 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
     }
     ctx.fillText(line, 70, titleY);
 
-    let yOffset = titleY + 50;
+    let yOffset = titleY + 45;
 
-    // Render Articles
+    // Render Articles list with safe vertical bounds
     const articles = ch.articles || [];
     if (articles.length === 0) {
       ctx.fillStyle = subtextColor;
       ctx.font = "italic 22px 'Inter', sans-serif";
-      ctx.fillText("No articles listed under this chapter.", 70, yOffset);
+      ctx.fillText("No provisions listed under this chapter.", 70, yOffset);
     } else {
       ctx.fillStyle = textColor;
       ctx.font = "bold 24px 'Inter', sans-serif";
       ctx.fillText(`Articles (${articles.length})`, 70, yOffset);
       yOffset += 40;
 
-      // Render top articles list
-      const maxArticles = 8;
+      // Limit items so article text doesn't overflow footer
+      const maxArticles = 7;
       articles.slice(0, maxArticles).forEach((art) => {
         ctx.fillStyle = accentColor;
         ctx.font = "bold 20px 'Inter', sans-serif";
@@ -147,8 +141,8 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
         ctx.fillStyle = textColor;
         ctx.font = "20px 'Inter', sans-serif";
         let artTitle = art.title || "Untitled Provision";
-        if (artTitle.length > 42) {
-          artTitle = artTitle.substring(0, 39) + "...";
+        if (artTitle.length > 40) {
+          artTitle = artTitle.substring(0, 37) + "...";
         }
         ctx.fillText(artTitle, 130, yOffset);
 
@@ -161,31 +155,22 @@ export function createPageTexture(options: PageRenderOptions): THREE.CanvasTextu
         ctx.fillText(`... and ${articles.length - maxArticles} additional articles.`, 80, yOffset + 10);
       }
     }
-  } else {
-    // Default Cover Page / Intro
-    ctx.fillStyle = textColor;
-    ctx.font = "bold 36px 'Fraunces', serif";
-    ctx.fillText("REPUBLIC OF KENYA", 70, 200);
-    ctx.fillStyle = subtextColor;
-    ctx.font = "24px 'Inter', sans-serif";
-    ctx.fillText("Promulgated 27th August 2010", 70, 250);
   }
 
-  // 4. Render Page Footer / Page Numbering
+  // Page Footer / Page Numbering
   ctx.strokeStyle = borderColor;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(70, canvas.height - 90);
-  ctx.lineTo(canvas.width - 70, canvas.height - 90);
+  ctx.moveTo(70, canvas.height - 120);
+  ctx.lineTo(canvas.width - 70, canvas.height - 120);
   ctx.stroke();
 
   ctx.fillStyle = subtextColor;
   ctx.font = "20px 'Inter', sans-serif";
   ctx.textAlign = "center";
   const pageNumStr = options.pageIndex ? `Page ${options.pageIndex}` : "Katiba 3D";
-  ctx.fillText(pageNumStr, canvas.width / 2, canvas.height - 55);
+  ctx.fillText(pageNumStr, canvas.width / 2, canvas.height - 80);
 
-  // Return generated CanvasTexture
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
