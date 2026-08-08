@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kenya Constitution 3D</title>
-    <!-- Importing typography from the design token sheet spec -->
-    <link href="https://googleapis.com" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Katiba Book 3D — Constitution of Kenya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       /* Design Tokens Expansion Pipeline */
       :root[data-theme="light"] {
@@ -156,6 +161,22 @@
         color: var(--text-secondary);
         line-height: 1.4;
       }
+      .chapter-card-title {
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 500;
+        margin-bottom: 6px !important;
+      }
+      .chapter-card-meta {
+        color: var(--text-muted);
+        font-size: 11px !important;
+        font-variant-numeric: tabular-nums;
+      }
+      #chapterList[data-loading] {
+        color: var(--text-muted);
+        font-size: 13px;
+        font-style: italic;
+      }
 
       .hint-overlay {
         position: absolute;
@@ -179,24 +200,9 @@
     </div>
 
     <div class="info-panel" id="infoPanel">
-      <h2 class="panel-title">The Constitution</h2>
-      <div class="panel-subtitle">Republic of Kenya</div>
-
-      <div class="chapter-card">
-        <h4>Preamble</h4>
-        <p>Sovereignty of the people and supremacy of this Constitution.</p>
-      </div>
-      <div class="chapter-card">
-        <h4>Chapter Four</h4>
-        <p>
-          The Bill of Rights - The framework for economic, social and cultural
-          policies.
-        </p>
-      </div>
-      <div class="chapter-card">
-        <h4>Chapter Six</h4>
-        <p>Leadership and Integrity - Principles governing state officers.</p>
-      </div>
+      <h2 class="panel-title" id="panelTitle">The Constitution</h2>
+      <div class="panel-subtitle" id="panelSubtitle">Republic of Kenya</div>
+      <div id="chapterList" data-loading="true">Loading chapters…</div>
     </div>
 
     <div class="hint-overlay" id="hintOverlay">

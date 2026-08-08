@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      sql.js:
+        specifier: ^1.14.1
+        version: 1.14.1
       three:
         specifier: ^0.185.1
         version: 0.185.1
@@ -258,6 +261,9 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  sql.js@1.14.1:
+    resolution: {integrity: sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==}
+
   three@0.185.1:
     resolution: {integrity: sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==}
 
@@ -473,6 +479,8 @@ snapshots:
       '@rolldown/binding-win32-x64-msvc': 1.2.3
 
   source-map-js@1.2.1: {}
+
+  sql.js@1.14.1: {}
 
   three@0.185.1: {}
 

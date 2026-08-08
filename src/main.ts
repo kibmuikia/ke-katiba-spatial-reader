@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { loadConstitution, type ChapterNode } from "./data";
 
 // --- 1. Scene & Global Systems Initializer ---
 const scene = new THREE.Scene();
@@ -304,6 +305,53 @@ const mouse = new THREE.Vector2();
 
 const infoPanel = document.getElementById("infoPanel")!;
 const hintOverlay = document.getElementById("hintOverlay")!;
+const chapterList = document.getElementById("chapterList")!;
+const panelSubtitle = document.getElementById("panelSubtitle")!;
+
+// --- Populate the side panel from ke-katiba-digest JSON ---
+function summarizeChapter(chapter: ChapterNode): string {
+  const first = chapter.articles[0];
+  if (!first) return `${chapter.articles.length} articles`;
+  const wordCount = chapter.articles.reduce((acc, a) => {
+    if (a.raw_text) return acc + a.raw_text.split(/\s+/).length;
+    return acc + (a.clauses ?? []).reduce((c, cl) => c + cl.text.split(/\s+/).length, 0);
+  }, 0);
+  return `${chapter.articles.length} articles · ~${wordCount.toLocaleString()} words`;
+}
+
+function renderChapters(chapters: ChapterNode[], source: string): void {
+  chapterList.removeAttribute("data-loading");
+  panelSubtitle.textContent = `Republic of Kenya · ${chapters.length} chapters · source: ${source}`;
+  const frag = document.createDocumentFragment();
+  for (const chapter of chapters) {
+    const card = document.createElement("article");
+    card.className = "chapter-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `Open Chapter ${chapter.number}: ${chapter.title}`);
+    const heading = document.createElement("h4");
+    heading.textContent = `Chapter ${chapter.number}`;
+    const title = document.createElement("p");
+    title.className = "chapter-card-title";
+    title.textContent = chapter.title;
+    const meta = document.createElement("p");
+    meta.className = "chapter-card-meta";
+    meta.textContent = summarizeChapter(chapter);
+    card.append(heading, title, meta);
+    frag.appendChild(card);
+  }
+  chapterList.replaceChildren(frag);
+}
+
+loadConstitution()
+  .then((doc) => {
+    const source = doc.metadata?.source ?? "ke-katiba-digest";
+    renderChapters(doc.chapters, source);
+  })
+  .catch((err: unknown) => {
+    chapterList.removeAttribute("data-loading");
+    chapterList.textContent = `Failed to load constitution: ${(err as Error).message}`;
+  });
 
 window.addEventListener("click", (event) => {
   // Guard click mechanics if the user triggers the top corner control elements

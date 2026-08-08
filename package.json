@@ -1,19 +1,22 @@
 {
-  "name": "my-three-app",
+  "name": "katiba-book-3d",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "description": "Interactive 3D reading experience for the Constitution of Kenya (2010), powered by ke-katiba-digest.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "sql.js": "^1.14.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/three": "^0.185.4",
     "typescript": "~6.0.2",
     "vite": "^8.2.0"
-  },
-  "dependencies": {
-    "three": "^0.185.1"
   }
 }
