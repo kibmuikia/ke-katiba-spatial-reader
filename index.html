@@ -51,9 +51,9 @@
       /* Top Minimal Management Bar */
       .controls-bar {
         position: absolute;
-        top: 24px;
-        left: 24px;
-        right: 24px;
+        top: max(16px, env(safe-area-inset-top));
+        left: max(16px, env(safe-area-inset-left));
+        right: max(16px, env(safe-area-inset-right));
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -94,6 +94,10 @@
         cursor: pointer;
         font-weight: 600;
         font-size: 12px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.2s ease;
       }
       .theme-toggle-btn:hover {
@@ -115,15 +119,39 @@
         box-sizing: border-box;
         opacity: 0;
         transform: translateX(30px);
-        transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         pointer-events: none;
         overflow-y: auto;
         box-shadow: 0 12px 28px rgba(19, 17, 16, 0.15);
+        z-index: 20;
       }
       .info-panel.visible {
         opacity: 1;
         transform: translateX(0);
         pointer-events: auto;
+      }
+
+      /* Mobile Responsive Breakpoint */
+      @media (max-width: 768px) {
+        .info-panel {
+          top: auto;
+          left: 12px;
+          right: 12px;
+          bottom: max(12px, env(safe-area-inset-bottom));
+          width: auto;
+          max-height: 55vh;
+          border-radius: 18px;
+          padding: 16px;
+          transform: translateY(100%);
+        }
+        .info-panel.visible {
+          transform: translateY(0);
+        }
+        .hint-overlay {
+          bottom: max(20px, env(safe-area-inset-bottom));
+          font-size: 11px;
+          padding: 0 16px;
+        }
       }
 
       .panel-title {

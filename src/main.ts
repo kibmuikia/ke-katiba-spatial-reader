@@ -352,9 +352,10 @@ loadConstitution()
     chapterList.textContent = `Failed to load constitution: ${(err as Error).message}`;
   });
 
-window.addEventListener("click", (event) => {
-  // Guard click mechanics if the user triggers the top corner control elements
-  if ((event.target as HTMLElement).closest(".interactive-element")) return;
+window.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary) return;
+  // Guard click mechanics if the user triggers interactive control elements or side panel
+  if ((event.target as HTMLElement).closest(".interactive-element") || (event.target as HTMLElement).closest(".info-panel")) return;
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -391,11 +392,27 @@ themeBtn.addEventListener("click", () => {
   // Update Three.js rendering context environment instantly
   scene.background = new THREE.Color(getThemeColor("--bg-canvas"));
 });
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+
+function updateCameraForViewport() {
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+
+  if (aspect < 1) {
+    // Mobile Portrait Adjustments
+    camera.fov = 55;
+    camera.position.set(0, 4.2, 7.5);
+  } else {
+    // Desktop / Landscape Adjustments
+    camera.fov = 40;
+    camera.position.set(0, 3.5, 6);
+  }
+
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
+}
+
+window.addEventListener("resize", updateCameraForViewport);
+updateCameraForViewport();
 // --- 7. Execution Frame Loop ---
 function animate() {
   requestAnimationFrame(animate);
