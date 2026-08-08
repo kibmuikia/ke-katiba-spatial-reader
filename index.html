@@ -1,22 +1,208 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kenya Constitution 3D</title>
+    <!-- Importing typography from the design token sheet spec -->
+    <link href="https://googleapis.com" rel="stylesheet" />
     <style>
+      /* Design Tokens Expansion Pipeline */
+      :root[data-theme="light"] {
+        --bg-canvas: #f9f7f3; /* ivoryCream.50 */
+        --bg-surface: #f2ece4; /* ivoryCream.100 */
+        --text-primary: #24201f; /* charcoalNet.900 */
+        --text-secondary: #584f4b; /* charcoalNet.700 */
+        --text-muted: #796a5d; /* warmGreige.600 */
+        --border-default: #c5bcb4; /* warmGreige.300 */
+        --interactive-primary: #8d644a; /* saddleTan.600 */
+        --interactive-secondary: #948475; /* metalBronze.500 */
+        --accent-signal: #b47055; /* rustTerracotta.500 */
+      }
+      :root[data-theme="dark"] {
+        --bg-canvas: #131110; /* charcoalNet.950 */
+        --bg-surface: #24201f; /* charcoalNet.900 */
+        --text-primary: #f2ece4; /* ivoryCream.100 */
+        --text-secondary: #d3c0a6; /* ivoryCream.300 */
+        --text-muted: #ada095; /* warmGreige.400 */
+        --border-default: #584f4b; /* charcoalNet.700 */
+        --interactive-primary: #c5917c; /* saddleTan.400 */
+        --interactive-secondary: #948475; /* metalBronze.400 */
+        --accent-signal: #b47055; /* rustTerracotta.500 */
+      }
+
       body {
         margin: 0;
         overflow: hidden;
-        background-color: #1a1a1a;
+        background-color: var(--bg-canvas);
+        font-family: "Inter", sans-serif;
+        color: var(--text-primary);
+        transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1);
       }
       canvas {
         display: block;
       }
+
+      /* Top Minimal Management Bar */
+      .controls-bar {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        right: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .interactive-element {
+        pointer-events: auto;
+      }
+
+      .brand-badge {
+        font-family: "Fraunces", serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 999px; /* pill */
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .brand-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--accent-signal);
+        border-radius: 50%;
+      }
+
+      .theme-toggle-btn {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+        padding: 8px 16px;
+        border-radius: 8px; /* radii.md */
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.2s ease;
+      }
+      .theme-toggle-btn:hover {
+        border-color: var(--interactive-primary);
+        background: var(--bg-canvas);
+      }
+
+      /* Modern Slide Over Layout Panel */
+      .info-panel {
+        position: absolute;
+        top: 80px;
+        right: 24px;
+        bottom: 24px;
+        width: 320px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 14px; /* radii.lg */
+        padding: 24px;
+        box-sizing: border-box;
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        pointer-events: none;
+        overflow-y: auto;
+        box-shadow: 0 12px 28px rgba(19, 17, 16, 0.15);
+      }
+      .info-panel.visible {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .panel-title {
+        font-family: "Fraunces", serif;
+        font-size: 24px;
+        margin: 0 0 8px 0;
+      }
+      .panel-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 20px;
+      }
+
+      .chapter-card {
+        background: var(--bg-canvas);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        transition: border-color 0.2s ease;
+      }
+      .chapter-card:hover {
+        border-color: var(--interactive-primary);
+      }
+      .chapter-card h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .chapter-card p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+
+      .hint-overlay {
+        position: absolute;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 13px;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+        pointer-events: none;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
+    <div class="controls-bar">
+      <div class="brand-badge"><span class="brand-dot"></span>Katiba 3D</div>
+      <button class="theme-toggle-btn interactive-element" id="themeBtn">
+        Switch to Light
+      </button>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <h2 class="panel-title">The Constitution</h2>
+      <div class="panel-subtitle">Republic of Kenya</div>
+
+      <div class="chapter-card">
+        <h4>Preamble</h4>
+        <p>Sovereignty of the people and supremacy of this Constitution.</p>
+      </div>
+      <div class="chapter-card">
+        <h4>Chapter Four</h4>
+        <p>
+          The Bill of Rights - The framework for economic, social and cultural
+          policies.
+        </p>
+      </div>
+      <div class="chapter-card">
+        <h4>Chapter Six</h4>
+        <p>Leadership and Integrity - Principles governing state officers.</p>
+      </div>
+    </div>
+
+    <div class="hint-overlay" id="hintOverlay">
+      Click the volume to open the interactive laws
+    </div>
+
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
