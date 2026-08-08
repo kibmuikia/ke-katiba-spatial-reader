@@ -43,7 +43,7 @@ const fillLight = new THREE.DirectionalLight(0x90b0ff, 0.3);
 fillLight.position.set(-5, 2, -3);
 scene.add(fillLight);
 
-// --- 3. Paper Foley Sound Synthesizer ---
+// --- 3. Audio Foley Synthesizer ---
 class PaperAudioEngine {
   private ctx: AudioContext | null = null;
 
@@ -298,7 +298,7 @@ frontCoverMesh.castShadow = true;
 frontCoverPivot.add(frontCoverMesh);
 frontCoverPivot.add(leftPageMesh);
 
-// --- 6. Application State & UI References ---
+// --- 6. State & UI References ---
 let constitutionData: ConstitutionDoc | null = null;
 let selectedChapter: ChapterNode | null = null;
 let isOpen = false;
@@ -311,8 +311,8 @@ const nextChapterBtn = document.getElementById("nextChapterBtn")!;
 const closeBookBtn = document.getElementById("closeBookBtn")!;
 
 const aboutBtn = document.getElementById("aboutBtn")!;
-const aboutModal = document.getElementById("aboutModal")!;
-const closeAboutBtn = document.getElementById("closeAboutBtn")!;
+const aboutMorphPage = document.getElementById("aboutMorphPage")!;
+const backToBookBtn = document.getElementById("backToBookBtn")!;
 
 function refreshPageTextures(): void {
   if (!constitutionData) return;
@@ -365,6 +365,7 @@ function setOpenState(open: boolean): void {
   } else {
     chapterHud.classList.add("hidden");
   }
+  updateViewportState();
 }
 
 loadConstitution()
@@ -378,7 +379,7 @@ loadConstitution()
     console.error("Failed to load constitution:", err);
   });
 
-// --- 7. HUD & Modal Event Listeners ---
+// --- 7. Event Handlers & Morph Transition ---
 chapterSelect.addEventListener("change", (e) => {
   const chNum = parseInt((e.target as HTMLSelectElement).value, 10);
   if (constitutionData) {
@@ -411,10 +412,15 @@ nextChapterBtn.addEventListener("click", () => {
 
 closeBookBtn.addEventListener("click", () => setOpenState(false));
 
-aboutBtn.addEventListener("click", () => aboutModal.classList.remove("hidden"));
-closeAboutBtn.addEventListener("click", () => aboutModal.classList.add("hidden"));
+// Full-Page Morph Transition Handlers
+aboutBtn.addEventListener("click", () => {
+  aboutMorphPage.classList.add("active");
+});
+backToBookBtn.addEventListener("click", () => {
+  aboutMorphPage.classList.remove("active");
+});
 
-// --- 8. Smooth Interpolated Camera & Interaction Raycasting ---
+// --- 8. Dynamic Aspect-Ratio Viewport & Camera Distance Scaling ---
 let targetRotation = 0;
 const animationSpeed = 0.06;
 
@@ -455,14 +461,13 @@ window.addEventListener("pointerdown", (event) => {
     }
   }
 
-  // Cover tap toggles Open / Close state
   const bookIntersects = raycaster.intersectObjects(bookGroup.children, true);
   if (bookIntersects.length > 0) {
     setOpenState(!isOpen);
   }
 });
 
-// Live Synchronized Design System Theme Toggler
+// Live Theme Switcher
 const themeBtn = document.getElementById("themeBtn")!;
 themeBtn.addEventListener("click", () => {
   const currentThemeAttr = document.documentElement.getAttribute("data-theme");
@@ -476,17 +481,28 @@ themeBtn.addEventListener("click", () => {
   refreshPageTextures();
 });
 
+/**
+ * Calculates adaptive camera zoom and FOV based on viewport aspect ratio.
+ * Fixes mobile horizontal page overflow.
+ */
 function updateViewportState() {
   const aspect = window.innerWidth / window.innerHeight;
   camera.aspect = aspect;
 
   if (isOpen) {
-    if (aspect < 1) {
-      // Mobile Portrait Viewport Position Offset
-      camOpenPos.set(0, 4.8, 0.4);
+    if (aspect < 1.0) {
+      // Mobile Portrait: Scale camera Z-distance inversely with aspect ratio
+      const targetZ = Math.max(5.2, 3.4 / aspect);
+      camOpenPos.set(0, targetZ, 0.1);
     } else {
-      // Desktop Viewport Position
+      // Desktop Landscape
       camOpenPos.set(0, 3.8, 0.1);
+    }
+  } else {
+    if (aspect < 1.0) {
+      camClosedPos.set(0, 4.2, Math.max(7.0, 5.0 / aspect));
+    } else {
+      camClosedPos.set(0, 3.5, 6);
     }
   }
 
@@ -505,7 +521,6 @@ function animate() {
     (targetRotation - frontCoverPivot.rotation.z) * animationSpeed;
 
   if (!isOpen) {
-    // CLOSED: Perspective view with gentle float
     bookGroup.position.y = Math.sin(Date.now() * 0.0012) * 0.06;
     bookGroup.position.x = THREE.MathUtils.lerp(bookGroup.position.x, 0, 0.05);
     bookGroup.rotation.x = THREE.MathUtils.lerp(bookGroup.rotation.x, 0.4, 0.05);
@@ -514,9 +529,8 @@ function animate() {
     camera.position.lerp(camClosedPos, 0.05);
     camera.lookAt(0, 0, 0);
   } else {
-    // OPEN: Top-down viewport centered over pages
     const aspect = window.innerWidth / window.innerHeight;
-    const targetYOffset = aspect < 1 ? -0.3 : 0; // Offset book slightly downward on mobile portrait
+    const targetYOffset = aspect < 1.0 ? -0.2 : 0;
 
     bookGroup.position.y = THREE.MathUtils.lerp(bookGroup.position.y, targetYOffset, 0.05);
     bookGroup.position.x = THREE.MathUtils.lerp(bookGroup.position.x, 0, 0.05);
