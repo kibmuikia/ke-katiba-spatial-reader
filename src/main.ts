@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { loadConstitution, type ChapterNode } from "./data";
+import { loadConstitution, type ChapterNode, type ConstitutionDoc } from "./data";
+import { createPageTexture } from "./pageTexture";
 
 // --- 1. Scene & Global Systems Initializer ---
 const scene = new THREE.Scene();
@@ -20,6 +21,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100,
 );
+// Default starting perspective view
 camera.position.set(0, 3.5, 6);
 camera.lookAt(0, 0, 0);
 
@@ -29,7 +31,7 @@ renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // --- 2. Advanced Adaptive Lights Setup ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
 scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xfffdf0, 1.2);
@@ -39,7 +41,7 @@ dirLight.shadow.mapSize.width = 2048;
 dirLight.shadow.mapSize.height = 2048;
 scene.add(dirLight);
 
-const fillLight = new THREE.DirectionalLight(0x90b0ff, 0.25);
+const fillLight = new THREE.DirectionalLight(0x90b0ff, 0.3);
 fillLight.position.set(-5, 2, -3);
 scene.add(fillLight);
 
@@ -48,7 +50,6 @@ class PaperAudioEngine {
   private ctx: AudioContext | null = null;
 
   public playFlippingEffect(): void {
-    // Standard user-gesture browser unlocking safety wrapper
     if (!this.ctx) {
       this.ctx = new (
         window.AudioContext || (window as any).webkitAudioContext
@@ -64,7 +65,6 @@ class PaperAudioEngine {
     const buffer = this.ctx.createBuffer(1, bufferSize, sampleRate);
     const data = buffer.getChannelData(0);
 
-    // Generate White Noise with a low-pass sweeping envelope to simulate canvas scraping friction
     for (let i = 0; i < bufferSize; i++) {
       data[i] = Math.random() * 2 - 1;
     }
@@ -75,7 +75,6 @@ class PaperAudioEngine {
     const filter = this.ctx.createBiquadFilter();
     filter.type = "lowpass";
 
-    // Sweep the cutoff frequency downwards to mirror a swinging cover slowing to a halt
     filter.frequency.setValueAtTime(800, this.ctx.currentTime);
     filter.frequency.exponentialRampToValueAtTime(
       120,
@@ -99,14 +98,14 @@ class PaperAudioEngine {
 }
 const sfx = new PaperAudioEngine();
 
-// --- 4. Premium Material Graphics Generation (Unchanged Court Green Structure) ---
+// --- 4. Premium Material Graphics Generation ---
 function createKenyanCoverTexture(): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
   canvas.height = 1433;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#004d26"; // Explicitly retained core green cover styling
+  ctx.fillStyle = "#004d26";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = "#ffd700";
@@ -142,7 +141,6 @@ function createKenyanCoverTexture(): THREE.CanvasTexture {
   ctx.font = "bold 72px 'Times New Roman', serif";
   ctx.fillText("REPUBLIC OF KENYA", canvas.width / 2, 390);
 
-  // Maasai Shield Graphic Sub-render
   ctx.save();
   ctx.translate(canvas.width / 2, 750);
   ctx.strokeStyle = "#ffd700";
@@ -195,7 +193,7 @@ function createKenyanCoverTexture(): THREE.CanvasTexture {
 
 const coverTexture = createKenyanCoverTexture();
 
-// --- 5. Assembly of the 3D Asset Geometry ---
+// --- 5. Assembly of 3D Book Geometry with Dynamic Pages ---
 const bookWidth = 2.0;
 const bookHeight = 2.8;
 const bookThickness = 0.4;
@@ -205,7 +203,6 @@ const bookGroup = new THREE.Group();
 scene.add(bookGroup);
 
 const coverColor = 0x004d26;
-const pageColor = 0xfffef0;
 
 const coverMatGeneric = new THREE.MeshStandardMaterial({
   color: coverColor,
@@ -213,7 +210,7 @@ const coverMatGeneric = new THREE.MeshStandardMaterial({
   metalness: 0.1,
 });
 
-// Gilded Inner Pages
+// Gilded Inner Pages Base Box
 const pageGeo = new THREE.BoxGeometry(
   bookWidth - 0.04,
   bookThickness,
@@ -224,15 +221,22 @@ const pageSideMat = new THREE.MeshStandardMaterial({
   roughness: 0.3,
   metalness: 0.4,
 });
-const pageTopMat = new THREE.MeshStandardMaterial({
-  color: pageColor,
-  roughness: 0.9,
+
+// Dynamic Left / Right Open Reading Page Meshes
+const leftPageMat = new THREE.MeshStandardMaterial({
+  roughness: 0.8,
+  metalness: 0.1,
 });
+const rightPageMat = new THREE.MeshStandardMaterial({
+  roughness: 0.8,
+  metalness: 0.1,
+});
+
 const pageMaterials = [
   pageSideMat,
   pageSideMat,
-  pageTopMat,
-  pageTopMat,
+  leftPageMat, // Top face left page split
+  pageSideMat,
   pageSideMat,
   pageSideMat,
 ];
@@ -241,6 +245,19 @@ const pagesMesh = new THREE.Mesh(pageGeo, pageMaterials);
 pagesMesh.castShadow = true;
 pagesMesh.receiveShadow = true;
 bookGroup.add(pagesMesh);
+
+// Right Page Top Surface Mesh (Overlaid onto right wing of open book)
+const rightPageGeo = new THREE.PlaneGeometry(bookWidth - 0.04, bookHeight - 0.04);
+const rightPageMesh = new THREE.Mesh(rightPageGeo, rightPageMat);
+rightPageMesh.rotation.x = -Math.PI / 2;
+rightPageMesh.position.set(0, bookThickness / 2 + 0.001, 0);
+bookGroup.add(rightPageMesh);
+
+// Left Open Page Mesh (Attached inside front cover pivot)
+const leftPageGeo = new THREE.PlaneGeometry(bookWidth - 0.04, bookHeight - 0.04);
+const leftPageMesh = new THREE.Mesh(leftPageGeo, leftPageMat);
+leftPageMesh.rotation.x = -Math.PI / 2;
+leftPageMesh.position.set(bookWidth / 2, coverThickness / 2 + 0.002, 0);
 
 // Back Cover
 const backCoverGeo = new THREE.BoxGeometry(
@@ -291,148 +308,158 @@ const frontCoverMesh = new THREE.Mesh(frontCoverGeo, frontCoverMaterials);
 frontCoverMesh.position.set(bookWidth / 2, coverThickness / 2, 0);
 frontCoverMesh.castShadow = true;
 frontCoverPivot.add(frontCoverMesh);
+frontCoverPivot.add(leftPageMesh);
 
-bookGroup.rotation.set(0.4, -0.5, 0.1);
-
-// --- 6. Interaction & Dynamic UX State Hooks ---
+// --- 6. Application State & Dynamic Page Rendering ---
+let constitutionData: ConstitutionDoc | null = null;
+let selectedChapter: ChapterNode | null = null;
 let isOpen = false;
-let targetRotation = 0;
-const animationSpeed = 0.06;
+let currentTheme: "dark" | "light" = "dark";
 
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-const infoPanel = document.getElementById("infoPanel")!;
 const hintOverlay = document.getElementById("hintOverlay")!;
-const chapterList = document.getElementById("chapterList")!;
-const panelSubtitle = document.getElementById("panelSubtitle")!;
 
-// --- Populate the side panel from ke-katiba-digest JSON ---
-function summarizeChapter(chapter: ChapterNode): string {
-  const first = chapter.articles[0];
-  if (!first) return `${chapter.articles.length} articles`;
-  const wordCount = chapter.articles.reduce((acc, a) => {
-    if (a.raw_text) return acc + a.raw_text.split(/\s+/).length;
-    return acc + (a.clauses ?? []).reduce((c, cl) => c + cl.text.split(/\s+/).length, 0);
-  }, 0);
-  return `${chapter.articles.length} articles · ~${wordCount.toLocaleString()} words`;
-}
+function refreshPageTextures(): void {
+  if (!constitutionData) return;
 
-function renderChapters(chapters: ChapterNode[], source: string): void {
-  chapterList.removeAttribute("data-loading");
-  panelSubtitle.textContent = `Republic of Kenya · ${chapters.length} chapters · source: ${source}`;
-  const frag = document.createDocumentFragment();
-  for (const chapter of chapters) {
-    const card = document.createElement("article");
-    card.className = "chapter-card";
-    card.tabIndex = 0;
-    card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `Open Chapter ${chapter.number}: ${chapter.title}`);
-    const heading = document.createElement("h4");
-    heading.textContent = `Chapter ${chapter.number}`;
-    const title = document.createElement("p");
-    title.className = "chapter-card-title";
-    title.textContent = chapter.title;
-    const meta = document.createElement("p");
-    meta.className = "chapter-card-meta";
-    meta.textContent = summarizeChapter(chapter);
-    card.append(heading, title, meta);
-    frag.appendChild(card);
-  }
-  chapterList.replaceChildren(frag);
+  const leftTex = createPageTexture({
+    theme: currentTheme,
+    type: "table-of-contents",
+    chapters: constitutionData.chapters,
+    selectedChapter: selectedChapter,
+    pageIndex: 1,
+  });
+
+  const rightTex = createPageTexture({
+    theme: currentTheme,
+    type: "chapter-detail",
+    selectedChapter: selectedChapter || constitutionData.chapters[0],
+    pageIndex: selectedChapter ? selectedChapter.number + 1 : 2,
+  });
+
+  leftPageMat.map = leftTex;
+  leftPageMat.needsUpdate = true;
+
+  rightPageMat.map = rightTex;
+  rightPageMat.needsUpdate = true;
 }
 
 loadConstitution()
   .then((doc) => {
-    const source = doc.metadata?.source ?? "ke-katiba-digest";
-    renderChapters(doc.chapters, source);
+    constitutionData = doc;
+    selectedChapter = doc.chapters[0];
+    refreshPageTextures();
   })
-  .catch((err: unknown) => {
-    chapterList.removeAttribute("data-loading");
-    chapterList.textContent = `Failed to load constitution: ${(err as Error).message}`;
+  .catch((err) => {
+    console.error("Failed to load constitution:", err);
   });
+
+// --- 7. Smooth Interpolated Camera & Book State Targets ---
+let targetRotation = 0;
+const animationSpeed = 0.06;
+
+// Target camera positions
+const camClosedPos = new THREE.Vector3(0, 3.5, 6);
+const camOpenPos = new THREE.Vector3(0, 4.2, 0.1); // Direct top-down zoom view over open pages
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
 window.addEventListener("pointerdown", (event) => {
   if (!event.isPrimary) return;
-  // Guard click mechanics if the user triggers interactive control elements or side panel
-  if ((event.target as HTMLElement).closest(".interactive-element") || (event.target as HTMLElement).closest(".info-panel")) return;
+  if ((event.target as HTMLElement).closest(".interactive-element")) return;
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(bookGroup.children, true);
 
-  if (intersects.length > 0) {
+  // When book is open in top-down view, clicking pages selects chapters or turns pages
+  if (isOpen) {
+    const pageIntersects = raycaster.intersectObjects([leftPageMesh, rightPageMesh]);
+    if (pageIntersects.length > 0) {
+      const hit = pageIntersects[0];
+      sfx.playFlippingEffect();
+
+      if (hit.object === leftPageMesh && constitutionData) {
+        // Left Page TOC Click: Advance to next chapter
+        const currentIndex = selectedChapter ? selectedChapter.number - 1 : 0;
+        const nextIndex = (currentIndex + 1) % constitutionData.chapters.length;
+        selectedChapter = constitutionData.chapters[nextIndex];
+        refreshPageTextures();
+        return;
+      } else if (hit.object === rightPageMesh && constitutionData) {
+        // Right Page Click: Flip to previous chapter
+        const currentIndex = selectedChapter ? selectedChapter.number - 1 : 0;
+        const prevIndex = (currentIndex - 1 + constitutionData.chapters.length) % constitutionData.chapters.length;
+        selectedChapter = constitutionData.chapters[prevIndex];
+        refreshPageTextures();
+        return;
+      }
+    }
+  }
+
+  // Cover / Spine Click toggles Open vs Closed reading view
+  const bookIntersects = raycaster.intersectObjects(bookGroup.children, true);
+  if (bookIntersects.length > 0) {
     isOpen = !isOpen;
     targetRotation = isOpen ? Math.PI * 0.92 : 0;
-
-    // Play the lowpass swept synthesized book-flip event audio node
     sfx.playFlippingEffect();
 
-    // Structural Side UI Panel Sync triggers
     if (isOpen) {
-      infoPanel.classList.add("visible");
-      hintOverlay.style.opacity = "0";
+      hintOverlay.textContent = "Click Left/Right Page to flip chapters · Click Spine to close";
     } else {
-      infoPanel.classList.remove("visible");
-      hintOverlay.style.opacity = "1";
+      hintOverlay.textContent = "Click the book cover to open and inspect";
     }
   }
 });
 
-// Live Synchronized Design System Theme Toggler
+// Live Synchronized Theme Switcher
 const themeBtn = document.getElementById("themeBtn")!;
 themeBtn.addEventListener("click", () => {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
-  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  const currentThemeAttr = document.documentElement.getAttribute("data-theme");
+  const nextTheme = currentThemeAttr === "dark" ? "light" : "dark";
 
   document.documentElement.setAttribute("data-theme", nextTheme);
   themeBtn.textContent = `Switch to ${nextTheme === "dark" ? "Light" : "Dark"}`;
-  // Update Three.js rendering context environment instantly
+  currentTheme = nextTheme as "dark" | "light";
+
   scene.background = new THREE.Color(getThemeColor("--bg-canvas"));
+  refreshPageTextures();
 });
 
-function updateCameraForViewport() {
-  const aspect = window.innerWidth / window.innerHeight;
-  camera.aspect = aspect;
-
-  if (aspect < 1) {
-    // Mobile Portrait Adjustments
-    camera.fov = 55;
-    camera.position.set(0, 4.2, 7.5);
-  } else {
-    // Desktop / Landscape Adjustments
-    camera.fov = 40;
-    camera.position.set(0, 3.5, 6);
-  }
-
+function updateCameraAspect() {
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
+window.addEventListener("resize", updateCameraAspect);
 
-window.addEventListener("resize", updateCameraForViewport);
-updateCameraForViewport();
-// --- 7. Execution Frame Loop ---
+// --- 8. Execution Frame Loop with Smooth Camera Lerp ---
 function animate() {
   requestAnimationFrame(animate);
+
+  // Hinge cover rotation animation
   frontCoverPivot.rotation.z +=
     (targetRotation - frontCoverPivot.rotation.z) * animationSpeed;
+
   if (!isOpen) {
+    // CLOSED: Gentle floating and camera in 3D perspective position
     bookGroup.position.y = Math.sin(Date.now() * 0.0012) * 0.06;
+    bookGroup.rotation.x = THREE.MathUtils.lerp(bookGroup.rotation.x, 0.4, 0.05);
     bookGroup.rotation.y = -0.5 + Math.sin(Date.now() * 0.0005) * 0.03;
+
+    camera.position.lerp(camClosedPos, 0.05);
+    camera.lookAt(0, 0, 0);
   } else {
-    bookGroup.position.y = THREE.MathUtils.lerp(
-      bookGroup.position.y,
-      -0.2,
-      0.05,
-    );
-    bookGroup.rotation.y = THREE.MathUtils.lerp(
-      bookGroup.rotation.y,
-      -0.1,
-      0.05,
-    );
+    // OPEN: Smooth zoom camera into top-down reading orientation centered above pages
+    bookGroup.position.y = THREE.MathUtils.lerp(bookGroup.position.y, 0, 0.05);
+    bookGroup.rotation.x = THREE.MathUtils.lerp(bookGroup.rotation.x, 0, 0.05);
+    bookGroup.rotation.y = THREE.MathUtils.lerp(bookGroup.rotation.y, 0, 0.05);
+
+    camera.position.lerp(camOpenPos, 0.05);
+    camera.lookAt(0, 0, 0);
   }
+
   renderer.render(scene, camera);
 }
 animate();

@@ -14,38 +14,45 @@
     <style>
       /* Design Tokens Expansion Pipeline */
       :root[data-theme="light"] {
-        --bg-canvas: #f9f7f3; /* ivoryCream.50 */
-        --bg-surface: #f2ece4; /* ivoryCream.100 */
-        --text-primary: #24201f; /* charcoalNet.900 */
-        --text-secondary: #584f4b; /* charcoalNet.700 */
-        --text-muted: #796a5d; /* warmGreige.600 */
-        --border-default: #c5bcb4; /* warmGreige.300 */
-        --interactive-primary: #8d644a; /* saddleTan.600 */
-        --interactive-secondary: #948475; /* metalBronze.500 */
-        --accent-signal: #b47055; /* rustTerracotta.500 */
+        --bg-canvas: #f9f7f3;
+        --bg-surface: #f2ece4;
+        --text-primary: #24201f;
+        --text-secondary: #584f4b;
+        --text-muted: #796a5d;
+        --border-default: #c5bcb4;
+        --interactive-primary: #8d644a;
+        --accent-signal: #8d281e;
       }
+
       :root[data-theme="dark"] {
-        --bg-canvas: #131110; /* charcoalNet.950 */
-        --bg-surface: #24201f; /* charcoalNet.900 */
-        --text-primary: #f2ece4; /* ivoryCream.100 */
-        --text-secondary: #d3c0a6; /* ivoryCream.300 */
-        --text-muted: #ada095; /* warmGreige.400 */
-        --border-default: #584f4b; /* charcoalNet.700 */
-        --interactive-primary: #c5917c; /* saddleTan.400 */
-        --interactive-secondary: #948475; /* metalBronze.400 */
-        --accent-signal: #b47055; /* rustTerracotta.500 */
+        --bg-canvas: #131110;
+        --bg-surface: #1e1b18;
+        --text-primary: #f2ece4;
+        --text-secondary: #c5bcb4;
+        --text-muted: #796a5d;
+        --border-default: #38322e;
+        --interactive-primary: #c5917c;
+        --accent-signal: #8d281e;
       }
 
       body {
         margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
         background-color: var(--bg-canvas);
-        font-family: "Inter", sans-serif;
         color: var(--text-primary);
-        transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        font-family: "Inter", sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: background-color 0.4s ease;
       }
+
       canvas {
         display: block;
+        width: 100%;
+        height: 100%;
       }
 
       /* Top Minimal Management Bar */
@@ -73,7 +80,7 @@
         padding: 6px 12px;
         background: var(--bg-surface);
         border: 1px solid var(--border-default);
-        border-radius: 999px; /* pill */
+        border-radius: 999px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -90,7 +97,7 @@
         border: 1px solid var(--border-default);
         color: var(--text-primary);
         padding: 8px 16px;
-        border-radius: 8px; /* radii.md */
+        border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
         font-size: 12px;
@@ -105,139 +112,46 @@
         background: var(--bg-canvas);
       }
 
-      /* Modern Slide Over Layout Panel */
-      .info-panel {
-        position: absolute;
-        top: 80px;
-        right: 24px;
-        bottom: 24px;
-        width: 320px;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-default);
-        border-radius: 14px; /* radii.lg */
-        padding: 24px;
-        box-sizing: border-box;
-        opacity: 0;
-        transform: translateX(30px);
-        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        pointer-events: none;
-        overflow-y: auto;
-        box-shadow: 0 12px 28px rgba(19, 17, 16, 0.15);
-        z-index: 20;
-      }
-      .info-panel.visible {
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-      }
-
-      /* Mobile Responsive Breakpoint */
-      @media (max-width: 768px) {
-        .info-panel {
-          top: auto;
-          left: 12px;
-          right: 12px;
-          bottom: max(12px, env(safe-area-inset-bottom));
-          width: auto;
-          max-height: 55vh;
-          border-radius: 18px;
-          padding: 16px;
-          transform: translateY(100%);
-        }
-        .info-panel.visible {
-          transform: translateY(0);
-        }
-        .hint-overlay {
-          bottom: max(20px, env(safe-area-inset-bottom));
-          font-size: 11px;
-          padding: 0 16px;
-        }
-      }
-
-      .panel-title {
-        font-family: "Fraunces", serif;
-        font-size: 24px;
-        margin: 0 0 8px 0;
-      }
-      .panel-subtitle {
-        font-size: 13px;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 20px;
-      }
-
-      .chapter-card {
-        background: var(--bg-canvas);
-        border: 1px solid var(--border-default);
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 12px;
-        transition: border-color 0.2s ease;
-      }
-      .chapter-card:hover {
-        border-color: var(--interactive-primary);
-      }
-      .chapter-card h4 {
-        margin: 0 0 4px 0;
-        font-size: 14px;
-        font-weight: 600;
-      }
-      .chapter-card p {
-        margin: 0;
-        font-size: 12px;
-        color: var(--text-secondary);
-        line-height: 1.4;
-      }
-      .chapter-card-title {
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        font-weight: 500;
-        margin-bottom: 6px !important;
-      }
-      .chapter-card-meta {
-        color: var(--text-muted);
-        font-size: 11px !important;
-        font-variant-numeric: tabular-nums;
-      }
-      #chapterList[data-loading] {
-        color: var(--text-muted);
-        font-size: 13px;
-        font-style: italic;
-      }
-
+      /* Floating Bottom Hint Overlay */
       .hint-overlay {
         position: absolute;
-        bottom: 32px;
+        bottom: max(24px, env(safe-area-inset-bottom));
         left: 50%;
         transform: translateX(-50%);
+        font-family: "Inter", sans-serif;
         font-size: 13px;
-        color: var(--text-muted);
-        letter-spacing: 0.05em;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        color: var(--text-secondary);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        padding: 8px 18px;
+        border-radius: 999px;
         pointer-events: none;
+        transition: opacity 0.4s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         text-align: center;
+        z-index: 10;
+        white-space: nowrap;
       }
     </style>
   </head>
   <body>
     <div class="controls-bar">
-      <div class="brand-badge"><span class="brand-dot"></span>Katiba 3D</div>
-      <button class="theme-toggle-btn interactive-element" id="themeBtn">
+      <div class="brand-badge interactive-element">
+        <div class="brand-dot"></div>
+        KATIBA 3D
+      </div>
+
+      <button id="themeBtn" class="theme-toggle-btn interactive-element">
         Switch to Light
       </button>
     </div>
 
-    <div class="info-panel" id="infoPanel">
-      <h2 class="panel-title" id="panelTitle">The Constitution</h2>
-      <div class="panel-subtitle" id="panelSubtitle">Republic of Kenya</div>
-      <div id="chapterList" data-loading="true">Loading chapters…</div>
+    <div id="hintOverlay" class="hint-overlay">
+      Click the book cover to open and inspect
     </div>
 
-    <div class="hint-overlay" id="hintOverlay">
-      Click the volume to open the interactive laws
-    </div>
-
-    <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
