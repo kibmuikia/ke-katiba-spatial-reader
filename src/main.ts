@@ -440,15 +440,7 @@ backToBookBtn.addEventListener("click", () => {
 // --- Keyboard Navigation ---
 window.addEventListener("keydown", (event) => {
   const target = event.target as HTMLElement | null;
-
-  logger.debug("Key-pressed", {
-    module: LOG_MODULE,
-    scope: "keyboard",
-    data: {
-      key: event.key,
-      targetTag: target?.tagName || null,
-    },
-  });
+  if (!target) return;
 
   if (
     target &&
@@ -458,6 +450,15 @@ window.addEventListener("keydown", (event) => {
   ) {
     return;
   }
+
+  logger.debug("Key-pressed", {
+    module: LOG_MODULE,
+    scope: "keyboard",
+    data: {
+      key: event.key,
+      targetTag: target?.tagName || null,
+    },
+  });
 
   if (event.key === "Escape") {
     if (aboutMorphPage.classList.contains("active")) {
@@ -471,8 +472,10 @@ window.addEventListener("keydown", (event) => {
   }
   if (!isOpen) return;
   if (event.key === "ArrowLeft") {
+    event.preventDefault();
     prevChapterBtn.click();
   } else if (event.key === "ArrowRight") {
+    event.preventDefault();
     nextChapterBtn.click();
   }
 });
