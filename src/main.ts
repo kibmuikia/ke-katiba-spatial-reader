@@ -1,18 +1,15 @@
 import * as THREE from "three";
 import { loadConstitution, type ChapterNode, type ConstitutionDoc } from "./data";
 import { createPageTexture } from "./pageTexture";
+import { initKenyaBackground } from "./background";
 
 // --- 1. Scene & Global Systems Initializer ---
 const scene = new THREE.Scene();
 
-function getThemeColor(variableName: string): number {
-  const hex = getComputedStyle(document.documentElement)
-    .getPropertyValue(variableName)
-    .trim();
-  return parseInt(hex.replace("#", "0x"));
-}
+let currentTheme: "dark" | "light" = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
 
-scene.background = new THREE.Color(getThemeColor("--bg-canvas"));
+const bgContainer = document.getElementById("bgContainer")!;
+const bgController = initKenyaBackground(bgContainer, currentTheme);
 
 const camera = new THREE.PerspectiveCamera(
   40,
@@ -23,7 +20,9 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 3.5, 6);
 camera.lookAt(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setClearColor(0x000000, 0);
+renderer.domElement.classList.add("webgl-canvas");
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
@@ -302,7 +301,6 @@ frontCoverPivot.add(leftPageMesh);
 let constitutionData: ConstitutionDoc | null = null;
 let selectedChapter: ChapterNode | null = null;
 let isOpen = false;
-let currentTheme: "dark" | "light" = "dark";
 
 const chapterHud = document.getElementById("chapterHud")!;
 const chapterSelect = document.getElementById("chapterSelect") as HTMLSelectElement;
@@ -477,7 +475,7 @@ themeBtn.addEventListener("click", () => {
   themeBtn.textContent = `Switch to ${nextTheme === "dark" ? "Light" : "Dark"}`;
   currentTheme = nextTheme as "dark" | "light";
 
-  scene.background = new THREE.Color(getThemeColor("--bg-canvas"));
+  bgController.setTheme(currentTheme);
   refreshPageTextures();
 });
 
