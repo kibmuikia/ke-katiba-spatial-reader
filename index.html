@@ -23,6 +23,21 @@
         --interactive-primary: #8d644a;
         --accent-signal: #8d281e;
         --shadow-elevation: rgba(0, 0, 0, 0.08);
+
+        /* Kenya Motion Crest Background Variables (Light) */
+        --bg-radial-gold: rgba(216, 180, 90, 0.12);
+        --bg-radial-green: rgba(8, 120, 62, 0.08);
+        --bg-radial-red: rgba(201, 37, 45, 0.08);
+        --mark-drop-shadow: rgba(141, 100, 74, 0.12);
+        --shield-border: rgba(141, 100, 74, 0.35);
+        --shield-black: #24201f;
+        --shield-black-mid: #38322e;
+        --guardian-color: #584f4b;
+        --spear-color: #584f4b;
+        --spear-fade: rgba(88, 79, 75, 0.08);
+        --vignette-grad: radial-gradient(circle, transparent 40%, rgba(200, 190, 175, 0.15) 75%, rgba(180, 170, 155, 0.35) 120%);
+        --halo-color: rgba(141, 100, 74, 0.18);
+        --label-color: rgba(88, 79, 75, 0.75);
       }
 
       :root[data-theme="dark"] {
@@ -36,6 +51,21 @@
         --interactive-primary: #c5917c;
         --accent-signal: #8d281e;
         --shadow-elevation: rgba(0, 0, 0, 0.4);
+
+        /* Kenya Motion Crest Background Variables (Dark) */
+        --bg-radial-gold: rgba(216, 180, 90, 0.07);
+        --bg-radial-green: rgba(8, 120, 62, 0.09);
+        --bg-radial-red: rgba(201, 37, 45, 0.09);
+        --mark-drop-shadow: rgba(216, 180, 90, 0.08);
+        --shield-border: rgba(216, 180, 90, 0.25);
+        --shield-black: #050607;
+        --shield-black-mid: #090b0d;
+        --guardian-color: #f1ead8;
+        --spear-color: #f1ead8;
+        --spear-fade: rgba(241, 234, 216, 0.08);
+        --vignette-grad: radial-gradient(circle, transparent 35%, rgba(0, 0, 0, 0.28) 75%, rgba(0, 0, 0, 0.72) 120%);
+        --halo-color: rgba(216, 180, 90, 0.22);
+        --label-color: rgba(241, 234, 216, 0.68);
       }
 
       * {
@@ -56,10 +86,254 @@
         transition: background-color 0.4s ease;
       }
 
-      canvas {
+      /* Kenya Motion Background Scene */
+      .bg-scene {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        isolation: isolate;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 48%, var(--bg-radial-gold), transparent 28%),
+          radial-gradient(circle at 18% 80%, var(--bg-radial-green), transparent 30%),
+          radial-gradient(circle at 82% 20%, var(--bg-radial-red), transparent 32%),
+          var(--bg-canvas);
+        transition: background 0.4s ease;
+      }
+
+      .bg-scene canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .grain {
+        position: absolute;
+        inset: -50%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+        animation: grain 9s ease-in-out infinite alternate;
+      }
+
+      .vignette {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: var(--vignette-grad);
+        transition: background 0.4s ease;
+      }
+
+      .mark {
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        top: 50%;
+        width: min(42vw, 430px);
+        aspect-ratio: 1 / 1.18;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        filter: drop-shadow(0 0 30px var(--mark-drop-shadow));
+      }
+
+      /* Abstract shield in crest's palette */
+      .shield {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 43%;
+        height: 63%;
+        transform: translate(-50%, -50%);
+        clip-path: polygon(50% 0, 100% 17%, 86% 70%, 50% 100%, 14% 70%, 0 17%);
+        background: linear-gradient(
+          180deg,
+          var(--shield-black) 0 28%,
+          #f1ead8 28% 34%,
+          #c9252d 34% 45%,
+          var(--shield-black-mid) 45% 58%,
+          #f1ead8 58% 64%,
+          #08783e 64% 100%
+        );
+        box-shadow: 0 0 0 1px var(--shield-border);
+        animation: shieldFloat 15s ease-in-out infinite;
+      }
+
+      .shield:before {
+        content: "";
+        position: absolute;
+        inset: 8%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        clip-path: inherit;
+      }
+
+      .shield:after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        width: 30%;
+        height: 18%;
+        transform: translate(-50%, -50%);
+        background:
+          radial-gradient(circle, #d8b45a 0 8%, transparent 9%),
+          linear-gradient(90deg, transparent 45%, rgba(255, 255, 255, 0.8) 46% 54%, transparent 55%);
+        opacity: 0.72;
+      }
+
+      /* Two abstract lion-like guardians */
+      .guardian {
+        position: absolute;
+        top: 23%;
+        width: 30%;
+        height: 54%;
+        opacity: 0.62;
+      }
+
+      .guardian.left {
+        left: 0;
+        transform: scaleX(-1);
+      }
+      .guardian.right {
+        right: 0;
+      }
+
+      .guardian:before {
+        content: "";
+        position: absolute;
+        left: 34%;
+        top: 10%;
+        width: 34%;
+        height: 36%;
+        border: 7px solid var(--guardian-color);
+        border-right-color: transparent;
+        border-radius: 58% 45% 50% 35%;
+        transform: rotate(-18deg);
+        filter: drop-shadow(0 0 10px rgba(241, 234, 216, 0.08));
+        transition: border-color 0.4s ease;
+      }
+
+      .guardian:after {
+        content: "";
+        position: absolute;
+        left: 43%;
+        top: 39%;
+        width: 8%;
+        height: 47%;
+        background: linear-gradient(180deg, var(--guardian-color), transparent);
+        transform: rotate(28deg);
+        box-shadow:
+          18px 25px 0 -7px var(--guardian-color),
+          -10px 36px 0 -8px var(--guardian-color);
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+      }
+
+      .spear {
+        position: absolute;
+        width: 2px;
+        height: 58%;
+        top: 0;
+        background: linear-gradient(var(--spear-color), var(--spear-fade));
+        transform-origin: bottom;
+        opacity: 0.6;
+        transition: background 0.4s ease;
+      }
+
+      .spear:before {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: -5px;
+        width: 12px;
+        height: 34px;
+        background: var(--spear-color);
+        clip-path: polygon(50% 0, 100% 100%, 50% 76%, 0 100%);
+        transition: background 0.4s ease;
+      }
+
+      .spear.a {
+        left: 27%;
+        transform: rotate(-22deg);
+      }
+      .spear.b {
+        right: 27%;
+        transform: rotate(22deg);
+      }
+
+      .label {
+        position: absolute;
+        z-index: 5;
+        left: 50%;
+        bottom: 5.5%;
+        transform: translateX(-50%);
+        color: var(--label-color);
+        letter-spacing: 0.42em;
+        font-size: clamp(8px, 1vw, 12px);
+        white-space: nowrap;
+        text-transform: uppercase;
+        transition: color 0.4s ease;
+      }
+
+      .halo {
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        top: 50%;
+        width: 120px;
+        height: 120px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        pointer-events: none;
+        background: var(--halo-color);
+        animation: halo 10s ease-in-out infinite;
+        transition: background 0.4s ease;
+      }
+
+      @keyframes shieldFloat {
+        0%, 100% {
+          transform: translate(-50%, -50%) translateY(0) rotate(0deg);
+        }
+        50% {
+          transform: translate(-50%, -50%) translateY(-4px) rotate(0.25deg);
+        }
+      }
+
+      @keyframes halo {
+        0%, 100% {
+          opacity: 0.5;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.5);
+        }
+      }
+
+      @keyframes grain {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(-2%, 2%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .shield, .halo, .grain {
+          animation: none;
+        }
+      }
+
+      canvas.webgl-canvas {
+        position: relative;
+        z-index: 10;
         display: block;
         width: 100%;
         height: 100%;
+        pointer-events: auto;
       }
 
       .interactive-element {
@@ -344,6 +618,9 @@
     </style>
   </head>
   <body>
+    <!-- Motion Background Container -->
+    <div id="bgContainer"></div>
+
     <div class="controls-bar">
       <div class="brand-badge interactive-element">
         <div class="brand-dot"></div>
