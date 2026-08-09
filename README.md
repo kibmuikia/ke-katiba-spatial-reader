@@ -1,4 +1,8 @@
-# Katiba Book 3D
+<p align="center">
+  <img src="data/logo_v1.png" alt="ke-katiba-spatial-reader logo v1" width="192" height="128" style="border-radius: 20%;" />
+</p>
+
+<h1 align="center">KE Katiba Spatial Reader</h1>
 
 > An interactive 3D reading experience for the **Constitution of Kenya (2010)**, powered by the structured AST emitted by [`ke-katiba-digest`](https://github.com/kibmuikia/ke-katiba-digest).
 
@@ -12,21 +16,20 @@
 
 ## Table of contents
 
-- [Katiba Book 3D](#katiba-book-3d)
-  - [Table of contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Current state](#current-state)
-  - [Quick start](#quick-start)
-  - [Project layout](#project-layout)
-  - [Data integration](#data-integration)
-    - [What we pull from upstream](#what-we-pull-from-upstream)
-    - [Document shape (as emitted by upstream)](#document-shape-as-emitted-by-upstream)
-    - [How it flows at runtime](#how-it-flows-at-runtime)
-    - [Refreshing the dataset](#refreshing-the-dataset)
-  - [Roadmap](#roadmap)
-  - [Architecture](#architecture)
-  - [Versioning](#versioning)
-  - [Acknowledgements](#acknowledgements)
+- [Table of contents](#table-of-contents)
+- [Overview](#overview)
+- [Current state](#current-state)
+- [Quick start](#quick-start)
+- [Project layout](#project-layout)
+- [Data integration](#data-integration)
+  - [What we pull from upstream](#what-we-pull-from-upstream)
+  - [Document shape (as emitted by upstream)](#document-shape-as-emitted-by-upstream)
+  - [How it flows at runtime](#how-it-flows-at-runtime)
+  - [Refreshing the dataset](#refreshing-the-dataset)
+- [Roadmap](#roadmap)
+- [Architecture](#architecture)
+- [Versioning](#versioning)
+- [Acknowledgements](#acknowledgements)
 
 ---
 
