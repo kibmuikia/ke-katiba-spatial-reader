@@ -418,6 +418,37 @@ backToBookBtn.addEventListener("click", () => {
   aboutMorphPage.classList.remove("active");
 });
 
+// --- Keyboard Navigation ---
+window.addEventListener("keydown", (event) => {
+  const target = event.target as HTMLElement | null;
+  console.debug("[ke-katiba-reader]: Key-pressed[ ", event.key, " ] Target[ ", target?.tagName, " ]");
+  if (
+    target &&
+    (target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT")
+  ) {
+    return;
+  }
+
+  if (event.key === "Escape") {
+    if (aboutMorphPage.classList.contains("active")) {
+      aboutMorphPage.classList.remove("active");
+      return;
+    }
+    if (isOpen) {
+      setOpenState(false);
+      return;
+    }
+  }
+  if (!isOpen) return;
+  if (event.key === "ArrowLeft") {
+    prevChapterBtn.click();
+  } else if (event.key === "ArrowRight") {
+    nextChapterBtn.click();
+  }
+});
+
 // --- 8. Dynamic Aspect-Ratio Viewport & Camera Distance Scaling ---
 let targetRotation = 0;
 const animationSpeed = 0.06;
