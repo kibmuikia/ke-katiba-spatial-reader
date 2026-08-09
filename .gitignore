@@ -25,5 +25,6 @@ dist-ssr
 data/*.log
 data/*.bak
 data/*.local
+data/*.md
 .claude/
 CLAUDE.md

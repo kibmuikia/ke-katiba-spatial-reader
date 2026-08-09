@@ -1,12 +1,28 @@
 import * as THREE from "three";
-import { loadConstitution, type ChapterNode, type ConstitutionDoc } from "./data";
+import {
+  loadConstitution,
+  type ChapterNode,
+  type ConstitutionDoc,
+} from "./data";
 import { createPageTexture } from "./pageTexture";
 import { initKenyaBackground } from "./background";
+import { logger } from "./utils/logger";
+import {
+  isKeyboardTargetKey,
+  isIgnoredTargetTag,
+} from "./utils/keyboard_utils";
+import { KEYBOARD_TARGET_KEYS } from "./utils/types";
+
+const [ESCAPE, ARROW_LEFT, ARROW_RIGHT] = KEYBOARD_TARGET_KEYS;
+
+const LOG_MODULE = "KKR-NM";
 
 // --- 1. Scene & Global Systems Initializer ---
 const scene = new THREE.Scene();
 
-let currentTheme: "dark" | "light" = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+let currentTheme: "dark" | "light" =
+  (document.documentElement.getAttribute("data-theme") as "dark" | "light") ||
+  "dark";
 
 const bgContainer = document.getElementById("bgContainer")!;
 const bgController = initKenyaBackground(bgContainer, currentTheme);
@@ -239,13 +255,19 @@ pagesMesh.castShadow = true;
 pagesMesh.receiveShadow = true;
 bookGroup.add(pagesMesh);
 
-const rightPageGeo = new THREE.PlaneGeometry(bookWidth - 0.04, bookHeight - 0.04);
+const rightPageGeo = new THREE.PlaneGeometry(
+  bookWidth - 0.04,
+  bookHeight - 0.04,
+);
 const rightPageMesh = new THREE.Mesh(rightPageGeo, rightPageMat);
 rightPageMesh.rotation.x = -Math.PI / 2;
 rightPageMesh.position.set(0, bookThickness / 2 + 0.001, 0);
 bookGroup.add(rightPageMesh);
 
-const leftPageGeo = new THREE.PlaneGeometry(bookWidth - 0.04, bookHeight - 0.04);
+const leftPageGeo = new THREE.PlaneGeometry(
+  bookWidth - 0.04,
+  bookHeight - 0.04,
+);
 const leftPageMesh = new THREE.Mesh(leftPageGeo, leftPageMat);
 leftPageMesh.rotation.x = -Math.PI / 2;
 leftPageMesh.position.set(bookWidth / 2, coverThickness / 2 + 0.002, 0);
@@ -303,7 +325,9 @@ let selectedChapter: ChapterNode | null = null;
 let isOpen = false;
 
 const chapterHud = document.getElementById("chapterHud")!;
-const chapterSelect = document.getElementById("chapterSelect") as HTMLSelectElement;
+const chapterSelect = document.getElementById(
+  "chapterSelect",
+) as HTMLSelectElement;
 const prevChapterBtn = document.getElementById("prevChapterBtn")!;
 const nextChapterBtn = document.getElementById("nextChapterBtn")!;
 const closeBookBtn = document.getElementById("closeBookBtn")!;
@@ -393,7 +417,9 @@ chapterSelect.addEventListener("change", (e) => {
 prevChapterBtn.addEventListener("click", () => {
   if (!constitutionData || !selectedChapter) return;
   const currIdx = selectedChapter.number - 1;
-  const prevIdx = (currIdx - 1 + constitutionData.chapters.length) % constitutionData.chapters.length;
+  const prevIdx =
+    (currIdx - 1 + constitutionData.chapters.length) %
+    constitutionData.chapters.length;
   selectedChapter = constitutionData.chapters[prevIdx];
   sfx.playFlippingEffect();
   refreshPageTextures();
@@ -418,6 +444,53 @@ backToBookBtn.addEventListener("click", () => {
   aboutMorphPage.classList.remove("active");
 });
 
+// --- Keyboard Navigation ---
+window.addEventListener("keydown", (event) => {
+  const target = event.target as HTMLElement | null;
+  if (!target) return;
+
+  if (isIgnoredTargetTag(target.tagName)) {
+    return;
+  }
+
+  if (!isKeyboardTargetKey(event.key)) return;
+
+  logger.debug(`Key '${event.key}' pressed`, {
+    module: LOG_MODULE,
+    scope: "keyboard-keydown",
+    data: {
+      targetTagName: target?.tagName || null,
+      isBookOpen: isOpen,
+    },
+  });
+
+  switch (event.key) {
+    case ESCAPE: {
+      if (aboutMorphPage.classList.contains("active")) {
+        aboutMorphPage.classList.remove("active");
+        return;
+      }
+      if (isOpen) {
+        setOpenState(false);
+        return;
+      }
+      break;
+    }
+    case ARROW_LEFT: {
+      if (!isOpen) return;
+      event.preventDefault();
+      prevChapterBtn.click();
+      break;
+    }
+    case ARROW_RIGHT: {
+      if (!isOpen) return;
+      event.preventDefault();
+      nextChapterBtn.click();
+      break;
+    }
+  }
+});
+
 // --- 8. Dynamic Aspect-Ratio Viewport & Camera Distance Scaling ---
 let targetRotation = 0;
 const animationSpeed = 0.06;
@@ -438,7 +511,10 @@ window.addEventListener("pointerdown", (event) => {
   raycaster.setFromCamera(mouse, camera);
 
   if (isOpen) {
-    const pageIntersects = raycaster.intersectObjects([leftPageMesh, rightPageMesh]);
+    const pageIntersects = raycaster.intersectObjects([
+      leftPageMesh,
+      rightPageMesh,
+    ]);
     if (pageIntersects.length > 0) {
       const hit = pageIntersects[0];
       if (hit.object === leftPageMesh && constitutionData) {
@@ -450,7 +526,9 @@ window.addEventListener("pointerdown", (event) => {
         return;
       } else if (hit.object === rightPageMesh && constitutionData) {
         const currIdx = selectedChapter ? selectedChapter.number - 1 : 0;
-        const prevIdx = (currIdx - 1 + constitutionData.chapters.length) % constitutionData.chapters.length;
+        const prevIdx =
+          (currIdx - 1 + constitutionData.chapters.length) %
+          constitutionData.chapters.length;
         selectedChapter = constitutionData.chapters[prevIdx];
         sfx.playFlippingEffect();
         refreshPageTextures();
@@ -521,7 +599,11 @@ function animate() {
   if (!isOpen) {
     bookGroup.position.y = Math.sin(Date.now() * 0.0012) * 0.06;
     bookGroup.position.x = THREE.MathUtils.lerp(bookGroup.position.x, 0, 0.05);
-    bookGroup.rotation.x = THREE.MathUtils.lerp(bookGroup.rotation.x, 0.4, 0.05);
+    bookGroup.rotation.x = THREE.MathUtils.lerp(
+      bookGroup.rotation.x,
+      0.4,
+      0.05,
+    );
     bookGroup.rotation.y = -0.5 + Math.sin(Date.now() * 0.0005) * 0.03;
 
     camera.position.lerp(camClosedPos, 0.05);
@@ -530,7 +612,11 @@ function animate() {
     const aspect = window.innerWidth / window.innerHeight;
     const targetYOffset = aspect < 1.0 ? -0.2 : 0;
 
-    bookGroup.position.y = THREE.MathUtils.lerp(bookGroup.position.y, targetYOffset, 0.05);
+    bookGroup.position.y = THREE.MathUtils.lerp(
+      bookGroup.position.y,
+      targetYOffset,
+      0.05,
+    );
     bookGroup.position.x = THREE.MathUtils.lerp(bookGroup.position.x, 0, 0.05);
     bookGroup.rotation.x = THREE.MathUtils.lerp(bookGroup.rotation.x, 0, 0.05);
     bookGroup.rotation.y = THREE.MathUtils.lerp(bookGroup.rotation.y, 0, 0.05);

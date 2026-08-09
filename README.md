@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="data/logo_v1.png" alt="ke-katiba-spatial-reader logo v1" width="192" height="128" style="border-radius: 20%;" />
+  <img src="public/images/logo_v1.png" alt="ke-katiba-spatial-reader logo v1" width="192" height="128" style="border-radius: 20%;" />
 </p>
 
 <h1 align="center">KE Katiba Spatial Reader</h1>
