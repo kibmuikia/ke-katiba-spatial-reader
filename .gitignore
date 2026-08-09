@@ -26,3 +26,4 @@ data/*.log
 data/*.bak
 data/*.local
 .claude/
+CLAUDE.md
