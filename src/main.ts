@@ -7,6 +7,13 @@ import {
 import { createPageTexture } from "./pageTexture";
 import { initKenyaBackground } from "./background";
 import { logger } from "./utils/logger";
+import {
+  isKeyboardTargetKey,
+  isIgnoredTargetTag,
+} from "./utils/keyboard_utils";
+import { KEYBOARD_TARGET_KEYS } from "./utils/types";
+
+const [ESCAPE, ARROW_LEFT, ARROW_RIGHT] = KEYBOARD_TARGET_KEYS;
 
 const LOG_MODULE = "KKR-NM";
 
@@ -442,41 +449,45 @@ window.addEventListener("keydown", (event) => {
   const target = event.target as HTMLElement | null;
   if (!target) return;
 
-  if (
-    target &&
-    (target.tagName === "INPUT" ||
-      target.tagName === "TEXTAREA" ||
-      target.tagName === "SELECT")
-  ) {
+  if (isIgnoredTargetTag(target.tagName)) {
     return;
   }
 
-  logger.debug("Key-pressed", {
+  if (!isKeyboardTargetKey(event.key)) return;
+
+  logger.debug(`Key '${event.key}' pressed`, {
     module: LOG_MODULE,
-    scope: "keyboard",
+    scope: "keyboard-keydown",
     data: {
-      key: event.key,
-      targetTag: target?.tagName || null,
+      targetTagName: target?.tagName || null,
+      isBookOpen: isOpen,
     },
   });
 
-  if (event.key === "Escape") {
-    if (aboutMorphPage.classList.contains("active")) {
-      aboutMorphPage.classList.remove("active");
-      return;
+  switch (event.key) {
+    case ESCAPE: {
+      if (aboutMorphPage.classList.contains("active")) {
+        aboutMorphPage.classList.remove("active");
+        return;
+      }
+      if (isOpen) {
+        setOpenState(false);
+        return;
+      }
+      break;
     }
-    if (isOpen) {
-      setOpenState(false);
-      return;
+    case ARROW_LEFT: {
+      if (!isOpen) return;
+      event.preventDefault();
+      prevChapterBtn.click();
+      break;
     }
-  }
-  if (!isOpen) return;
-  if (event.key === "ArrowLeft") {
-    event.preventDefault();
-    prevChapterBtn.click();
-  } else if (event.key === "ArrowRight") {
-    event.preventDefault();
-    nextChapterBtn.click();
+    case ARROW_RIGHT: {
+      if (!isOpen) return;
+      event.preventDefault();
+      nextChapterBtn.click();
+      break;
+    }
   }
 });
 
