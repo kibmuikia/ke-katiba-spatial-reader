@@ -16,11 +16,13 @@ Single-page Vite + TypeScript app that renders an interactive 3D model of the Co
 
 - `src/main.ts` — 3D scene, interaction, theme toggle. Organised in 7 numbered sections (Scene/Lights/Audio/Materials/Geometry/Interaction/Animation).
 - `src/data.ts` — `loadConstitution()` (JSON, cached) and `loadConstitutionDb()` (lazy `sql.js` + SQLite mirror). Main.ts renders chapters from `loadConstitution()`.
-- `src/counter.ts`, `src/style.css`, `src/assets/` — unused Vite scaffold leftovers. Don't extend.
+- `src/background.ts` — abstract Kenya motion crest background, re-syncs from CSS custom properties on theme toggle.
+- `src/pageTexture.ts` — dynamic canvas page textures for the chapter HUD.
+- `src/style.css`, `src/assets/` — unused Vite scaffold leftovers. Don't extend.
 - `public/data/constitution_kenya_2010.{json,db}` — bundled snapshots from [kibmuikia/ke-katiba-digest](https://github.com/kibmuikia/ke-katiba-digest). Refresh by re-curling from `main`.
 - `index.html` — design tokens (`:root[data-theme=…]`) + HUD shell (`.brand-badge`, `#themeBtn`, `.info-panel`, `.hint-overlay`) + `#app` mount. Three.js canvas is appended to `document.body`, not `#app`.
 - `data/` — gitignored scratch (screenshots, logs).
-- Leftover snapshots to ignore: `index.html.bak`, `src/main.ts.bak`, `src/main.ts.2.bak`.
+- Leftover snapshots to ignore: `index.html.bak` (no longer on disk), `src/main.ts.bak`, `src/main.ts.2.bak`, `src/style.css.bak`.
 
 ## Architecture notes
 
@@ -41,5 +43,5 @@ Single-page Vite + TypeScript app that renders an interactive 3D model of the Co
 ## Gotchas
 
 - Theme colours must be added to **both** `:root[data-theme="light"]` and `:root[data-theme="dark"]` and referenced via `getThemeColor()`.
-- The `src/counter.ts` / `src/style.css` / `src/assets/` are scaffolds — never import them.
+- The `src/style.css` and `src/assets/` are scaffolds — never import them. (`src/counter.ts` was removed; the file no longer exists.)
 - After every task: keep this file and `README.md` accurate and compact; provide a sample commit with a `task: …` message without including co-authored-by-data.

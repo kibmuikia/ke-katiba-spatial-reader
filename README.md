@@ -44,7 +44,7 @@ The app is intentionally minimal — a single TypeScript entry, no UI framework 
 | Field | Value |
 | --- | --- |
 | **Version** | `0.1.0` |
-| **Generated** | `2026-08-08` |
+| **Generated** | `2026-08-09` |
 | **Stack** | Vite 8 · TypeScript 6 · Three.js 0.185 · sql.js 1.14 |
 | **Status** | Pre-alpha · active integration with `ke-katiba-digest` |
 <!-- END:CURRENT_STATE -->
@@ -103,7 +103,9 @@ katiba-book-3d/
 ├── src/
 │   ├── data.ts                     # fetch + cache + lazy sql.js loader
 │   ├── sql.js.d.ts                 # ambient types for sql.js (no upstream)
-│   ├── main.ts                     # the whole 3D scene + interaction layer
+│   ├── main.ts                     # 3D scene, interaction, theme toggle
+│   ├── background.ts               # abstract Kenya motion crest background
+│   ├── pageTexture.ts              # dynamic canvas page textures
 │   └── style.css                   # unused Vite scaffold (kept for reference)
 └── data/                           # scratch screenshots & local logs (gitignored)
 ```
@@ -189,7 +191,12 @@ After refresh, re-run `pnpm typecheck && pnpm build` and bump the version per th
 | --- | --- | --- |
 | 3D book renders with cover texture, idle bob, dark/light theme | ✅ Shipped (0.1.0) | Current state. |
 | Cover click opens, plays paper-flip, slides in chapter list from `ke-katiba-digest` JSON | ✅ Shipped (0.1.0) | |
-| Real chapter list populated from parsed AST (18 chapters, 227 articles) | ✅ Shipped (0.1.0) | This release. |
+| Real chapter list populated from parsed AST (18 chapters, 227 articles) | ✅ Shipped (0.1.0) | |
+| Mobile responsiveness + viewport-adaptive 3D layout | ✅ Shipped (0.1.0) | |
+| Glassmorphism chapter HUD, About modal, mobile offset fixes | ✅ Shipped (0.1.0) | |
+| Adaptive aspect-ratio camera distance + morph About page | ✅ Shipped (0.1.0) | |
+| Abstract Kenya motion crest background (light/dark aware) | ✅ Shipped (0.1.0) | |
+| Dynamic canvas page textures + top-down reading zoom | ✅ Shipped (0.1.0) | |
 | Per-chapter reader pane with article text rendered inside the open book | 🔜 0.2.0 | Lazy-load on first chapter open. |
 | Full-text search across clauses via the SQLite mirror | 🔜 0.3.0 | Will exercise `loadConstitutionDb()`. |
 | Bookmark / share-by-canonical-ref (`Article 33(2)(d)` deep links) | 📋 Backlog | |
@@ -200,9 +207,11 @@ After refresh, re-run `pnpm typecheck && pnpm build` and bump the version per th
 
 ## Architecture
 
-The whole app is a single TypeScript entry (`src/main.ts`) organised into seven labeled sections. The big-picture flow:
+`src/main.ts` is the scene orchestrator (organised in seven labeled sections) and delegates texture generation and background motion to sibling modules. The big-picture flow:
 
 - **`bookGroup`** is the root `THREE.Group`. It contains the page block, back cover, spine, and a `frontCoverPivot` whose `rotation.z` is the only animated transform that opens the cover.
+- **`src/pageTexture.ts`** paints the per-page canvas textures that animate behind the chapter cards.
+- **`src/background.ts`** renders the abstract Kenya motion crest behind the book, re-syncing from CSS custom properties on theme toggle.
 - **`PaperAudioEngine`** lazily creates an `AudioContext` on the first user click (browser autoplay policy) and synthesises a lowpass-swept white-noise burst for the page-flip sound.
 - **Interaction** — a single `window.click` listener raycasts against `bookGroup.children`. Clicks on `.interactive-element` ancestors (the theme toggle) are filtered out via `event.target.closest()`.
 - **Design tokens** — `:root[data-theme="light|dark"]` CSS custom properties in `index.html` are the single source of truth for color. `getThemeColor()` reads them at runtime and the scene background is re-applied on theme toggle.
